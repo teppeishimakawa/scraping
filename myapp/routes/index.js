@@ -15,6 +15,8 @@ var txt_arr2=[];
 
 var imgUrl_arr=[];
 
+var today = new Date();
+
 
 var express = require('express');
 var router = express.Router();
@@ -80,8 +82,25 @@ function scrape()
 //処理待ちしたいコードを丸ごとpromiseで囲んでその中の待ちたい箇所でresolve
 return new Promise(resolve =>
  {
+
+
+function setup()
+{
 //ダウンロードマネージャーの設定(全ダウンロードイベントがここでひとつずつ処理される)/////////
  var cnt=0;
+// 'download'が存在するかチェック
+if (!fs.existsSync('../download')) {
+  // 'download'ディレクトリを作成
+  fs.mkdirSync('../download', (err, folder) => {
+    if (err) throw err;
+    console.log(folder);
+  });
+}
+
+fs.mkdirSync('../download/' + title + "_" + today , (err, folder) => {
+  if (err) throw err;
+  console.log(folder);
+});
 
  client.download
  .on('ready', function (stream) {
@@ -91,10 +110,9 @@ return new Promise(resolve =>
 	console.log('url: ' + stream.url.href);
     console.log('type: ' + stream.type);
     console.log(stream.length);
-    stream.pipe(fs.createWriteStream('/Users/shimakawateppei/Documents/scraping2/download/image' + cnt + '.png'));
+    stream.pipe(fs.createWriteStream('/Users/shimakawateppei/Documents/scraping2/download/' + title + "_" + today +'/image' + cnt + '.png'));
     console.log(stream.url.href + 'をダウンロードしました');
     img_tx += Object.assign(stream.url.href) +"<br><br>";
-
 
  })
 .on('error', function (err) {
@@ -107,6 +125,9 @@ return new Promise(resolve =>
  });
 //並列ダウンロード制限の設定
 client.download.parallel = 4;
+
+//setup()
+}
 //////////////////////////////////////////////////////////////////////////////
 
 
@@ -116,6 +137,8 @@ client.fetch(url)
     {
        title=result.$('title').text();
        console.log(title);
+
+       setup();
        //title scrape
        title_tx=Object.assign(title).toString();
        result.$('h1,h2,h3,p').each(function (i,elem)
@@ -134,8 +157,6 @@ client.fetch(url)
         console.log('終了');
         //txt_arr2.push({txt:title});
         //txt_arr2.push({txt:url});
-
-    
 
 //finally
   });
@@ -187,14 +208,10 @@ var txt_arr3=[];
         }
 
 
-　　　　
-
-
         console.log(txt_arr2);
         //const test = txt_arr.map(item =>  + item );
 
        var path_csv=path.resolve(__dirname, '../../csv');
-       var today = new Date();
 
        const {createObjectCsvWriter} = require('csv-writer');
        const csvfilepath = path_csv + "/" + title + "_" + today + '.csv'
