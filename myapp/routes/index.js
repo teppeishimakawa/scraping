@@ -84,25 +84,30 @@ return new Promise(resolve =>
  {
 
 
-function setup()
-{
-//ダウンロードマネージャーの設定(全ダウンロードイベントがここでひとつずつ処理される)/////////
- var cnt=0;
-// 'download'が存在するかチェック
-if (!fs.existsSync('../download')) {
-  // 'download'ディレクトリを作成
+ function setup()
+ {
+  //dl managerの設定(全ダウンロードイベントがここでひとつずつ処理される)/////////////////////
+  var cnt=0;
+  //　ディレクトリ存在チェック
+  if (!fs.existsSync('../download'))
+  {
+  // ディレクトリを作成
   fs.mkdirSync('../download', (err, folder) => {
     if (err) throw err;
     console.log(folder);
   });
-}
+  }
 
-fs.mkdirSync('../download/' + title + "_" + today , (err, folder) => {
+  if (!fs.existsSync('../download/' + title + "_" + today))
+  {
+  fs.mkdirSync('../download/' + title + "_" + today , (err, folder) => {
   if (err) throw err;
   console.log(folder);
-});
+  });
+  }
 
- client.download
+
+  client.download
  .on('ready', function (stream) {
 
 	cnt++;
@@ -114,17 +119,18 @@ fs.mkdirSync('../download/' + title + "_" + today , (err, folder) => {
     console.log(stream.url.href + 'をダウンロードしました');
     img_tx += Object.assign(stream.url.href) +"<br><br>";
 
- })
-.on('error', function (err) {
+  })
+ .on('error', function (err) {
     console.error(err.url + 'をダウンロードできませんでした: ' + err.message);
- })
-.on('end', function () {
+  })
+ .on('end', function () {
     console.log('ダウンロードが完了しました');
     //↓この処理をawaitする!!
     resolve("ok");
+
  });
-//並列ダウンロード制限の設定
-client.download.parallel = 4;
+ //並列ダウンロード制限の設定
+ client.download.parallel = 4;
 
 //setup()
 }
@@ -137,8 +143,6 @@ client.fetch(url)
     {
        title=result.$('title').text();
        console.log(title);
-
-       setup();
        //title scrape
        title_tx=Object.assign(title).toString();
        result.$('h1,h2,h3,p').each(function (i,elem)
@@ -146,6 +150,8 @@ client.fetch(url)
         //txt_arr[i] = '{txt:' + '"' + result.$(elem).text() + '"' +  '}';
         txt_arr[i] = result.$(elem).text();
        });
+
+       setup();
        //downloadマネージャーに全画像登録
        result.$('img').download();
     })
@@ -180,7 +186,6 @@ const records = [
 
 module.exports = router;
 
-var txt_arr3=[];
 
     //////csv作成////////////////////////////////////
     function csv()
@@ -235,6 +240,10 @@ var txt_arr3=[];
     csvWriter.writeRecords(records)       // returns a promise
     .then(() => {
         console.log('...Done');
+
+        txt_arr=[];
+        txt_arr2=[];
+        imgUrl_arr=[];
 
     });
    }
