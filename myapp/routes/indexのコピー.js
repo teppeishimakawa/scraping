@@ -4,8 +4,6 @@
 
 
 //cheerio-httpcli pattern
-
-
 var url_tx="";
 var title_tx="";
 var title;
@@ -15,6 +13,7 @@ var txt_arr2=[];
 var cnt=0;
 var today = new Date();
 var records=[];
+var num;
 var path_dl;
 var path_csv
 var {createObjectCsvWriter} = require('csv-writer');
@@ -29,17 +28,12 @@ var fs = require('fs');
 var path = require('path');
 var param = {};
 
-var test;
-var test2;
-
-
 
 var request = require('request');
 var URL = require('url');
 //express4.16.0以降はbody-parser標準搭載
 router.use(express.json())
 router.use(express.urlencoded({ extended: true }));
-
 
 
 
@@ -62,7 +56,6 @@ router.get('/', function(req, res, next) {
 router.post("/", async(req, res) =>
 {
 
-
  //url_tx = Object.assign(req.body.url).toString();
 if(req.body.url == url_tx || !req.body.url)
 　  {
@@ -74,7 +67,6 @@ if(req.body.url == url_tx || !req.body.url)
         });
      return false;
     }
-
 
 url_tx = req.body.url;
  //url_tx = req.body.url;
@@ -118,8 +110,45 @@ function scrape()
   return new Promise(resolve =>
  {
 
-/////////////////////
-var test=client.fetch(url_tx)
+
+client.fetch(url_tx, param, function(err, $, res)
+{
+  if(err){ console.log("error"); return; }
+
+  title=$('title').text();
+  console.log(title);
+
+  setup(resolve);
+
+  title_tx=Object.assign(title).toString();
+  $('h1,h2,h3,p,span').each(function (i,elem)
+  {//txt scrape
+   //txt_arr[i] = '{txt:' + '"' + result.$(elem).text() + '"' +  '}';
+   txt_arr[i] = $(elem).text();
+  });
+
+  $("img").each(function(i,elem)
+  {
+console.log($(elem).attr('src'))
+
+    var src = $(elem).attr('src');
+    console.log(src)
+    src = URL.resolve(url_tx, src);
+    img_tx.push(Object.assign(src));
+
+  cnt++;
+
+    request(src).pipe(fs.createWriteStream(path_dl +"/"+ title + "_" + today +'/image' + cnt + '.png'));
+  });
+    console.log('ダウンロードが完了しました');
+    //↓scrapeのawait。この処理をawaitする!!
+    resolve("ok");
+});
+
+
+
+/*////////////////////////////////////
+client.fetch(url_tx)
     .then( (result) =>
     {
        title=result.$('title').text();
@@ -134,12 +163,8 @@ var test=client.fetch(url_tx)
         //txt_arr[i] = '{txt:' + '"' + result.$(elem).text() + '"' +  '}';
         txt_arr[i] = result.$(elem).text();
        });
-
-
        //downloadマネージャーに全画像登録
-
-       var src=result.$('img')
-       src.download();
+       num=result.$('img').download();
        //2回目のscrapingでもここまでは正常
        //console.log(result.$('img'))
     })
@@ -156,28 +181,7 @@ var test=client.fetch(url_tx)
 
 //finally
   });
-/////////////////////
-console.log("test")
-console.log(test)
-
-
-/*
-  $("img").each(function(i,elem)
-  {
-
-    var src = $(elem).attr('src');
-    console.log(src)
-    src = URL.resolve(url_tx, src);
-    img_tx.push(Object.assign(src));
-
-  cnt++;
-
-    request(src).pipe(fs.createWriteStream(path_dl +"/"+ title + "_" + today +'/image' + cnt + '.png'));
-  });
-    console.log('ダウンロードが完了しました');
-*/
-
-
+*/////////////////////////////////////
 
 //promise
  })
@@ -223,26 +227,25 @@ const records = [
 
 
 
+
+/*////////client.downloadを使うと2,3度目のdownloadでどんどん重複downloadされたため断念///////////////
+
   //console.log(client.download);
   //client.download.clearCache();
 
-  var test2=client.download
+  client.download
  .on('ready', function (stream) {
-
     cnt++;
 
-    //const options = {flags: "w"};  // 追加書き込みモード
-     //stream.resume();
-　　　//fname = stream.url.href.replace(/[^a-zA-Z0-9\.]+/g, '_');
-    //request(stream.url.href).pipe
     stream.pipe(fs.createWriteStream(path_dl +"/"+ title + "_" + today +'/image' + cnt + '.png'));
-    //console.log(stream);
     console.log(stream.url.href + 'をダウンロードしました');
-    //console.log(this.state);
-    //console.log('url: ' + stream.url.href);
-    //console.log('type: ' + stream.type);
-    //console.log(stream.length);
+    console.log(this.state);
+    console.log('url: ' + stream.url.href);
+    console.log('type: ' + stream.type);
+    console.log(stream.length);
     img_tx.push(Object.assign(stream.url.href));
+*///////////////////////////////////////////////
+
 
 
 
@@ -255,6 +258,9 @@ const records = [
 　　//img_tx += Object.assign(stream.url.href) +"<br><br>";
 
 
+
+
+/*///////////////////////////////////////
   })
  .on('error', function (err) {
     console.error(err.url + 'をダウンロードできませんでした: ' + err.message);
@@ -263,19 +269,11 @@ const records = [
     console.log('ダウンロードが完了しました');
     //↓scrapeのawait。この処理をawaitする!!
     resolve("ok");
-    //↓超超重要!!!!reload回数でdownload倍々対策↓
-      client.download._events.ready=[];
-      client.download._events.error=[];
-      client.download._events.end=[];
-
-  })
+  });
 
    //並列ダウンロード制限の設定
   client.download.parallel = 4;
-
-
-console.log(client.download._events.ready)
-console.log(test2);
+*///////////////////////////////////////
 
 
 //setup

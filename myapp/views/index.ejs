@@ -13,20 +13,36 @@
 <span class="aaa">title:</span>
 <h3 ><%=title %></h3>
 <span class="aaa">img_url:</span>
-<h3 ><%-img %></h3>
-<span class="aaa">img:</span>
+<%img.forEach(function(value,key) { %>
+<h3 ><%= value %></h3>
+<br>
+<% }); %>
 
+<div class="aaa">img:</div>
+<%img.forEach(function(value,key) { %>
+<img src="<%- value %>"></img>
+<br>
+<% }); %>
 
 <!--img id="img1"/-->
 
 <form name="form1" action="/" method="POST" >
  <input type="text"  value="" name="url">
- <input type="submit"  value="transmit">
+ <input type="submit" id="submit" value="transmit">
  <input type="button"  value="reload" onclick="location.href='/';">
 </form>
 
 <script>
-//document.getElementById("img1").src=document.getElementById("img_url").innerHTML;
+/*
+document.getElementById("submit").onclick=function timer()
+{
+ document.getElementById("submit").disabled=true;
+ setTimeout(function(){document.getElementById("submit").disabled=false;},3000)
+}
+*/
+
+
+
 </script>
 </body>
 </html>
