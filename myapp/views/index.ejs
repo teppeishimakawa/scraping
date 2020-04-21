@@ -24,7 +24,7 @@
 <span ><%= value %>,</span>
 <% }); %>
 <br>
-
+<br>
 <!--img-->
 <input type="checkbox" name="img_chk" value="on" >
 <span class="aaa">img_url:</span>
@@ -34,6 +34,7 @@
 <br>
 <% }); %>
 
+<br>
 <div class="aaa">img:</div>
 <%img.forEach(function(value,key) { %>
 <img src="<%- value %>"></img>
@@ -42,7 +43,8 @@
 
 <!--img id="img1"/-->
 
-
+ <br>
+ <h3>please enter url...</h3>
  <input type="text"  value="" name="url">
  <input type="submit" id="submit" value="transmit">
  <input type="button"  value="reload" onclick="location.href='/';">

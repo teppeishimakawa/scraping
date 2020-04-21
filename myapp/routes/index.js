@@ -50,6 +50,8 @@ router.use(express.urlencoded({ extended: true }));
 /* GET home page. */
 router.get('/', function(req, res, next) {
 
+ img_tx=[];
+ txt_tx=[];
 
  //client.reset();
     res.render("index.ejs",
@@ -152,9 +154,16 @@ var test=client.fetch(url_tx)
         {//txt scrape
          //txt_arr[i] = '{txt:' + '"' + result.$(elem).text() + '"' +  '}';
          txt_arr[i] = result.$(elem).text();
-         txt_tx.push(Object.assign(result.$(elem).text()));
+         txt_tx.push(Object.assign(result.$(elem).text()).toString());
         });
        }
+         //空欄削除(valueをreturnするので該当valueの要素のみにfilterされる)
+         txt_tx=txt_tx.filter(function(value,i,self){return value !== '';});
+         txt_arr=txt_arr.filter(function(value,i,self){return value !== '';})
+         //重複削除(iをreturnするので該当iの要素のみにfilterされる)
+         txt_tx=txt_tx.filter(function(value,i,self){return i === self.indexOf(value);});
+         txt_arr=txt_arr.filter(function(value,i,self){return i ===  self.indexOf(value);})
+         //console.log(txt_tx);
 
        if(img_chk == "on")
        {
@@ -323,17 +332,17 @@ console.log(test2);
           txt_arr2.push({"":""})
          txt_arr2[i].txt=txt_arr[i]
          };
-     
+
 //for(j=0;j<img_tx.length;j++){txt_arr2[j].imgUrl=img_tx[j]}
 
-       
+
 　　　　　//imgUrl配列追加
         for(i=0;i<img_tx.length;i++)
          {
          txt_arr2.push({"":""})
          txt_arr2[i].imgUrl=img_tx[i]
          };
-        
+
 
 
 console.log(txt_arr2)
