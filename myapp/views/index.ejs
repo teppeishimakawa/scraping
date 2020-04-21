@@ -8,11 +8,27 @@
     <title>scrap</title>
 </head>
 <body>
+<form name="form1" action="/" method="POST" >
+
 <span class="aaa">url:</span>
 <h3 ><%=url %></h3>
 <span class="aaa">title:</span>
 <h3 ><%=title %></h3>
+
+
+<!--txt-->
+<input type="checkbox" name="txt_chk" value="on" >
+<span class="aaa">txt:</span>
+<br>
+<%txt.forEach(function(value,key) { %>
+<span ><%= value %>,</span>
+<% }); %>
+<br>
+
+<!--img-->
+<input type="checkbox" name="img_chk" value="on" >
 <span class="aaa">img_url:</span>
+<br>
 <%img.forEach(function(value,key) { %>
 <h3 ><%= value %></h3>
 <br>
@@ -26,10 +42,11 @@
 
 <!--img id="img1"/-->
 
-<form name="form1" action="/" method="POST" >
+
  <input type="text"  value="" name="url">
  <input type="submit" id="submit" value="transmit">
  <input type="button"  value="reload" onclick="location.href='/';">
+
 </form>
 
 <script>

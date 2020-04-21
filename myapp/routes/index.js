@@ -9,7 +9,10 @@
 var url_tx="";
 var title_tx="";
 var title;
+
 var img_tx=[];
+var txt_tx=[];
+
 var txt_arr=[];
 var txt_arr2=[];
 var cnt=0;
@@ -32,10 +35,11 @@ var param = {};
 var test;
 var test2;
 
+var img_chk;
 
 
-var request = require('request');
-var URL = require('url');
+//var request = require('request');
+//var URL = require('url');
 //express4.16.0以降はbody-parser標準搭載
 router.use(express.json())
 router.use(express.urlencoded({ extended: true }));
@@ -52,6 +56,7 @@ router.get('/', function(req, res, next) {
         {
         url: "",
         title: "",
+        txt: [],
         img: []
         });
 
@@ -61,35 +66,45 @@ router.get('/', function(req, res, next) {
 
 router.post("/", async(req, res) =>
 {
-
+  img_chk="";
+  txt_chk="";
+  //console.log(req.body.img_chk)
+  req.body.img_chk?(img_chk=Object.assign(req.body.img_chk).toString()):"";
+  req.body.txt_chk?(txt_chk=Object.assign(req.body.txt_chk).toString()):"";
 
  //url_tx = Object.assign(req.body.url).toString();
-if(req.body.url == url_tx || !req.body.url)
+ //if(req.body.url == url_tx || !req.body.url)
+if(!req.body.url)
 　  {
       res.render("index.ejs",
         {
         url: "",
         title: "",
+        txt: [],
         img: []
         });
      return false;
     }
 
 
-url_tx = req.body.url;
- //url_tx = req.body.url;
+ url_tx = req.body.url;
  console.log(url_tx);
 
  //scrape -> ejsに結果反映 -> csv作成　の順で実施
  const result = await scrape();
  //処理完了後、promiseがok返してくる
  console.log(result);
- //console.log(img_tx)
+
+
+console.log(img_chk)
+  if(img_chk !== "on"){img_tx=[]}
+  if(txt_chk !== "on"){txt_tx=[]}
 
  res.render('index.ejs',
  {
     	url: url_tx,
       title: title_tx,
+      txt: txt_tx,
       img: img_tx
  })
 
@@ -124,24 +139,30 @@ var test=client.fetch(url_tx)
     {
        title=result.$('title').text();
        console.log(title);
-
-       setup(resolve);
-
-       //title scrape
        title_tx=Object.assign(title).toString();
-       result.$('h1,h2,h3,p,span').each(function (i,elem)
-       {//txt scrape
-        //txt_arr[i] = '{txt:' + '"' + result.$(elem).text() + '"' +  '}';
-        txt_arr[i] = result.$(elem).text();
-       });
 
 
-       //downloadマネージャーに全画像登録
+       if(img_chk == "on")
+       {setup(resolve);}else{resolve("ok");}
 
+
+       if(txt_chk == "on")
+       {
+        result.$('h1,h2,h3,p,span').each(function (i,elem)
+        {//txt scrape
+         //txt_arr[i] = '{txt:' + '"' + result.$(elem).text() + '"' +  '}';
+         txt_arr[i] = result.$(elem).text();
+         txt_tx.push(Object.assign(result.$(elem).text()));
+        });
+       }
+
+       if(img_chk == "on")
+       {
        var src=result.$('img')
+        //downloadマネージャーに全画像登録
        src.download();
-       //2回目のscrapingでもここまでは正常
-       //console.log(result.$('img'))
+       }
+
     })
     .catch((err) => {
         console.log(err);
@@ -153,9 +174,9 @@ var test=client.fetch(url_tx)
 
         //txt_arr2.push({txt:title});
         //txt_arr2.push({txt:url});
-
 //finally
   });
+
 /////////////////////
 console.log("test")
 console.log(test)
@@ -177,8 +198,6 @@ console.log(test)
     console.log('ダウンロードが完了しました');
 */
 
-
-
 //promise
  })
 
@@ -199,6 +218,7 @@ const records = [
 
   function setup(resolve)
   {
+
    //dl managerの設定(全ダウンロードイベントがここでひとつずつ処理される)/////////////////////
 
    //　ディレクトリ存在チェック
@@ -289,18 +309,38 @@ console.log(test2);
     function csv()
     {
 
-        //csv用のオブジェクト作成。txt配列追加(ここでオブジェクト型の配列形成)。txt_arr2がオブジェクト用配列
-        for(i=0;i<txt_arr.length;i++)
-        {
-        txt_arr2.push({txt:txt_arr[i]})
-        };
-
         //pageUrl追加
-    　  txt_arr2[0].ul=url_tx;
+        txt_arr2.push({ul:url_tx})
 　　　　　//title追加
     　  txt_arr2[0].ttl=title_tx;
+
+
+
+
+         //csv用のオブジェクト作成。txt配列追加(ここでオブジェクト型の配列形成)。txt_arr2がオブジェクト用配列
+         for(i=0;i<txt_arr.length;i++)
+         {
+          txt_arr2.push({"":""})
+         txt_arr2[i].txt=txt_arr[i]
+         };
+     
+//for(j=0;j<img_tx.length;j++){txt_arr2[j].imgUrl=img_tx[j]}
+
+       
 　　　　　//imgUrl配列追加
-        for(j=0;j<img_tx.length;j++){txt_arr2[j].imgUrl=img_tx[j]}
+        for(i=0;i<img_tx.length;i++)
+         {
+         txt_arr2.push({"":""})
+         txt_arr2[i].imgUrl=img_tx[i]
+         };
+        
+
+
+console.log(txt_arr2)
+
+
+
+
 
         //const test = txt_arr.map(item =>  + item );
 
@@ -333,11 +373,11 @@ console.log(test2);
         //ここでtxt_arr2を空にすると場合によってはエラー
         txt_arr=[];
         img_tx=[];
-        //url_tx="";
+
         title_tx="";
         records=[];
         txt_arr2=[];
-        
+
         //client.referer=false;
         //client.set('headers', {}, false);
         //client.set('headers', {referer: ''});
