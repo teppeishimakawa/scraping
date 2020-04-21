@@ -36,6 +36,10 @@ var test;
 var test2;
 
 var img_chk;
+var txt_chk;
+var keyword_chk;
+
+var keyword_tx;
 
 
 //var request = require('request');
@@ -52,14 +56,14 @@ router.get('/', function(req, res, next) {
 
  img_tx=[];
  txt_tx=[];
-
  //client.reset();
     res.render("index.ejs",
         {
         url: "",
         title: "",
         txt: [],
-        img: []
+        img: [],
+        keyword:""
         });
 
 });
@@ -70,9 +74,30 @@ router.post("/", async(req, res) =>
 {
   img_chk="";
   txt_chk="";
+  keyword_chk="";
   //console.log(req.body.img_chk)
   req.body.img_chk?(img_chk=Object.assign(req.body.img_chk).toString()):"";
   req.body.txt_chk?(txt_chk=Object.assign(req.body.txt_chk).toString()):"";
+  req.body.keyword_chk?(keyword_chk=Object.assign(req.body.keyword).toString()):"";
+
+
+
+if(req.body.keyword)
+   {
+
+    keyword_tx = req.body.keyword;
+       res.render("index.ejs",
+        {
+        url: "",
+        title: "",
+        txt: [],
+        img: [],
+        keyword:keyword_tx
+        });
+     return;
+   }
+
+
 
  //url_tx = Object.assign(req.body.url).toString();
  //if(req.body.url == url_tx || !req.body.url)
@@ -83,31 +108,34 @@ if(!req.body.url)
         url: "",
         title: "",
         txt: [],
-        img: []
+        img: [],
+        keyword:""
         });
-     return false;
+     return;
     }
 
 
+
+
+
  url_tx = req.body.url;
- console.log(url_tx);
+ //console.log(url_tx);
+ if(img_chk !== "on"){img_tx=[]}
+ if(txt_chk !== "on"){txt_tx=[]}
 
  //scrape -> ejsに結果反映 -> csv作成　の順で実施
  const result = await scrape();
  //処理完了後、promiseがok返してくる
- console.log(result);
+ //console.log(result);
 
-
-console.log(img_chk)
-  if(img_chk !== "on"){img_tx=[]}
-  if(txt_chk !== "on"){txt_tx=[]}
 
  res.render('index.ejs',
  {
     	url: url_tx,
       title: title_tx,
       txt: txt_tx,
-      img: img_tx
+      img: img_tx,
+      keyword:keyword_tx
  })
 
  csv();

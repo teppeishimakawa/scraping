@@ -42,16 +42,30 @@
 <% }); %>
 
 <!--img id="img1"/-->
-
  <br>
  <h3>please enter url...</h3>
  <input type="text"  value="" name="url">
  <input type="submit" id="submit" value="transmit">
  <input type="button"  value="reload" onclick="location.href='/';">
+ <br>
+ <br>
+ <br>
+ <input type="checkbox" name="keyword_chk" id="kchk" value="on" >
+ <span class="aaa">keyword:</span>
+ <h3 ><%=keyword %></h3>
+ <input type="text"  value="" name="keyword">
 
 </form>
 
 <script>
+document.getElementById("kchk").onchange=function()
+{
+ if(document.getElementById("kchk").checked == true)
+ {
+ console.log("ok")
+ document.getElementsByName("url")[0].value='http://www.google.com/search';
+ }else{document.getElementsByName("url")[0].value=''}
+}
 /*
 document.getElementById("submit").onclick=function timer()
 {
