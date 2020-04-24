@@ -44,7 +44,7 @@
 <!--img id="img1"/-->
  <br>
  <h3>please enter url...</h3>
- <input type="text"  value="" name="url">
+ <input type="text"  value="<%= keywordUrl %>" name="url">
  <input type="submit" id="submit" value="transmit">
  <input type="button"  value="reload" onclick="location.href='/';">
  <br>
@@ -54,6 +54,11 @@
  <span class="aaa">keyword:</span>
  <h3 ><%=keyword %></h3>
  <input type="text"  value="" name="keyword">
+ <%keywordUrl.forEach(function(value,key) { %>
+ <h3 ><%=value %></h3>
+ <br>
+ <% }); %>
+
 
 </form>
 
@@ -62,7 +67,6 @@ document.getElementById("kchk").onchange=function()
 {
  if(document.getElementById("kchk").checked == true)
  {
- console.log("ok")
  document.getElementsByName("url")[0].value='http://www.google.com/search';
  }else{document.getElementsByName("url")[0].value=''}
 }

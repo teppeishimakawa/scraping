@@ -40,6 +40,8 @@ var txt_chk;
 var keyword_chk;
 
 var keyword_tx;
+var keyowrd_url_tx=[];
+var url_arr=[];
 
 
 //var request = require('request');
@@ -63,7 +65,8 @@ router.get('/', function(req, res, next) {
         title: "",
         txt: [],
         img: [],
-        keyword:""
+        keyword:"",
+        keywordUrl:[]
         });
 
 });
@@ -75,27 +78,55 @@ router.post("/", async(req, res) =>
   img_chk="";
   txt_chk="";
   keyword_chk="";
+  keyword_tx="";
+  keyowrd_url_tx=[];
   //console.log(req.body.img_chk)
   req.body.img_chk?(img_chk=Object.assign(req.body.img_chk).toString()):"";
   req.body.txt_chk?(txt_chk=Object.assign(req.body.txt_chk).toString()):"";
-  req.body.keyword_chk?(keyword_chk=Object.assign(req.body.keyword).toString()):"";
+  req.body.keyword_chk?(keyword_chk=Object.assign(req.body.keyword_chk).toString()):"";
 
 
+  keyword_tx = req.body.keyword;
 
-if(req.body.keyword)
+
+if(req.body.keyword_chk == "on")
    {
 
-    keyword_tx = req.body.keyword;
-       res.render("index.ejs",
+    var word = keyword_tx;
+    //queryでkeyword検索できる
+    client.fetch('http://www.google.com/search', { q: word })
+    .then((result) =>
+    {
+　　//さらにそれぞれのaタグに対してその中のh3にキーワードが含まれているか
+        result.$('a').each(function (i,elem,self)
+        {
+        var h3 = result.$(elem).find('h3').text();
+        console.log(h3)
+        if (h3.includes(keyword_tx))
+         {
+         keyowrd_url_tx.push(result.$(elem).attr('href'));
+         }
+        });
+    })
+    .catch((err) => {
+        console.log(err);
+    })
+    .finally(() =>
+    {
+        console.log('終了');
+               res.render("index.ejs",
         {
         url: "",
         title: "",
         txt: [],
         img: [],
-        keyword:keyword_tx
+        keyword:keyword_tx,
+        keywordUrl:keyowrd_url_tx
         });
+    });
      return;
    }
+
 
 
 
@@ -109,36 +140,44 @@ if(!req.body.url)
         title: "",
         txt: [],
         img: [],
-        keyword:""
+        keyword:"",
+        keywordUrl:[]
         });
      return;
     }
 
 
+  url_arr = req.body.url.split(",");
 
 
 
- url_tx = req.body.url;
- //console.log(url_tx);
- if(img_chk !== "on"){img_tx=[]}
- if(txt_chk !== "on"){txt_tx=[]}
+//url_tx=url_arr[0]
+  //console.log(url_tx);
+  if(img_chk !== "on"){img_tx=[]}
+  if(txt_chk !== "on"){txt_tx=[]}
 
- //scrape -> ejsに結果反映 -> csv作成　の順で実施
- const result = await scrape();
- //処理完了後、promiseがok返してくる
- //console.log(result);
-
-
- res.render('index.ejs',
+//i使ってるところ関数内に他にあると無限ループになる！注意！！！
+ for(k=0;k<url_arr.length;k++)
  {
+ url_tx=url_arr[k]
+
+  //scrape -> ejsに結果反映 -> csv作成　の順で実施
+  const result = await scrape();
+
+  //処理完了後、promiseがok返してくる
+  //console.log(result);
+  csv();
+ }
+  res.render('index.ejs',
+  {
     	url: url_tx,
       title: title_tx,
       txt: txt_tx,
       img: img_tx,
-      keyword:keyword_tx
- })
+      keyword:keyword_tx,
+      keywordUrl:keyowrd_url_tx
+  })
 
- csv();
 
 })
 
@@ -162,13 +201,13 @@ function scrape()
   //処理待ちしたいコードを丸ごとpromiseで囲んでその中の待ちたい箇所でresolve
   return new Promise(resolve =>
  {
-
 /////////////////////
 var test=client.fetch(url_tx)
     .then( (result) =>
     {
        title=result.$('title').text();
-       console.log(title);
+       title_new=title.replace(/[^a-zA-Z0-9\.]+/g, '_');
+       console.log(title_new);
        title_tx=Object.assign(title).toString();
 
 
@@ -196,8 +235,18 @@ var test=client.fetch(url_tx)
        if(img_chk == "on")
        {
        var src=result.$('img')
-        //downloadマネージャーに全画像登録
-       src.download();
+       //console.log(src.length)
+
+      //img無い場合
+      if(src.length == 0)
+        { resolve("ok");
+          //重要！！！endイベントだけ走らせる
+          client.download._events.ready=[];
+          client.download._events.error=[];
+          //client.download._events.end=[];
+        }
+          else{src.download();}
+       //downloadマネージャーに全画像登録
        }
 
     })
@@ -208,7 +257,7 @@ var test=client.fetch(url_tx)
     .finally(() =>
  {
         console.log('終了');
-
+        console.log(client.fetch);
         //txt_arr2.push({txt:title});
         //txt_arr2.push({txt:url});
 //finally
@@ -258,6 +307,10 @@ const records = [
 
    //dl managerの設定(全ダウンロードイベントがここでひとつずつ処理される)/////////////////////
 
+
+  //rename ->  fname = savedir + "/" + fname.replace(/[^a-zA-Z0-9\.]+/g, '_');
+
+
    //　ディレクトリ存在チェック
    if (!fs.existsSync('../download'))
    {
@@ -268,9 +321,9 @@ const records = [
     });
    }
 
-  if (!fs.existsSync('../download/' + title + "_" + today))
+  if (!fs.existsSync('../download/' + title_new + "_" + today))
   {
-  fs.mkdirSync('../download/' + title + "_" + today , (err, folder) => {
+  fs.mkdirSync('../download/' + title_new + "_" + today , (err, folder) => {
   if (err) throw err;
   console.log(folder);
   });
@@ -283,6 +336,8 @@ const records = [
   //console.log(client.download);
   //client.download.clearCache();
 
+
+
   var test2=client.download
  .on('ready', function (stream) {
 
@@ -292,7 +347,7 @@ const records = [
      //stream.resume();
 　　　//fname = stream.url.href.replace(/[^a-zA-Z0-9\.]+/g, '_');
     //request(stream.url.href).pipe
-    stream.pipe(fs.createWriteStream(path_dl +"/"+ title + "_" + today +'/image' + cnt + '.png'));
+    stream.pipe(fs.createWriteStream(path_dl +"/"+ title_new + "_" + today +'/image' + cnt + '.png'));
     //console.log(stream);
     console.log(stream.url.href + 'をダウンロードしました');
     //console.log(this.state);
@@ -326,6 +381,8 @@ const records = [
       client.download._events.end=[];
 
   })
+
+ 
 
    //並列ダウンロード制限の設定
   client.download.parallel = 4;
@@ -384,7 +441,7 @@ console.log(txt_arr2)
        path_csv=path.resolve(__dirname, '../../csv');
 
        //{createObjectCsvWriter} = require('csv-writer');
-       csvfilepath = path_csv + "/" + title + "_" + today + '.csv'
+       csvfilepath = path_csv + "/" + title_new + "_" + today + '.csv'
        console.log(csvfilepath);
        csvWriter = createObjectCsvWriter({
        path: csvfilepath,
@@ -408,9 +465,9 @@ console.log(txt_arr2)
     //処理完了後、配列を空に
        cnt=0;
         //ここでtxt_arr2を空にすると場合によってはエラー
-        txt_arr=[];
+        //txt_arr=[];
         img_tx=[];
-
+        txt_tx=[];
         title_tx="";
         records=[];
         txt_arr2=[];
