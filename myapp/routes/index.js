@@ -386,7 +386,7 @@ const records = [
  
 
    //並列ダウンロード制限の設定
-  client.download.parallel = 4;
+  client.download.parallel = 5;
 
 
 console.log(client.download._events.ready)

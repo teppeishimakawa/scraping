@@ -49,22 +49,26 @@
  <br>
  <input type="submit" id="submit" value="transmit">
  <input type="button"  value="reload" onclick="location.href='/';">
+ <span>url_arr_range:</span>
+ <input type="number" id="stt" value="0" min="0" max="100" step="1">
+ <input type="number" id="end" value="1" min="1" max="100" step="1">
  <br>
  <br>
  <br>
  <br>
- <h3 >-option-</h3>
+ <h3 >-option1-</h3>
  <input type="checkbox" name="keyword_chk" id="kchk" value="on" >
  <span class="aaa">keyword:</span>
  <h3 ><%=keyword %></h3>
  <input type="text"  value="" name="keyword">
- <span>url_arr_range:</span>
- <input type="number" id="stt" value="0" min="0" max="100" step="1">
- <input type="number" id="end" value="1" min="1" max="100" step="1">
  <%keywordUrl.forEach(function(value,key) { %>
  <h3 ><%=value %></h3>
  <br>
  <% }); %>
+ <br>
+ <br>
+ <h3 >-option2-</h3>
+ <input type="file" id="file">
 
 
 </form>
@@ -101,6 +105,25 @@ endNum=parseInt(document.getElementById("end").value);
 document.getElementById("urlText").value=urlArr.slice(sttNum,endNum);
 }
 
+
+
+
+let fileInput = document.getElementById('file');
+let fileReader = new FileReader();
+fileInput.onchange = () =>
+{
+  let file = fileInput.files[0];
+  fileReader.readAsText(file);
+};
+
+fileReader.onload = () =>
+{
+//重要！！fileReaderで読んだテキストをLFで分けて配列に
+var LF = String.fromCharCode(10);
+urlArr = fileReader.result.split(LF);
+console.log(urlArr)
+document.getElementById("urlText").value=urlArr;
+}
 
 /*
 document.getElementById("submit").onclick=function timer()
