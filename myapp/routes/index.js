@@ -206,7 +206,8 @@ var test=client.fetch(url_tx)
     .then( (result) =>
     {
        title=result.$('title').text();
-       title_new=title.replace(/[^a-zA-Z0-9\.]+/g, '_');
+       title_new=title
+       //title_new=title.replace(/[^a-zA-Z0-9\.]+/g, '_');
        console.log(title_new);
        title_tx=Object.assign(title).toString();
 
